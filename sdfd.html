@@ -1,0 +1,585 @@
+# Fix: avoid Python % formatting with percent signs in HTML. Use a unique token and replace.
+html = r"""<!DOCTYPE html>
+<html lang="es" class="no-js" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MarVan Impresiones — Impresión, stickers, agendas y papelería personalizada</title>
+  <meta name="description" content="Somos MarVan Impresiones: stickers resistentes al agua, agendas personalizadas, tarjetas, anillados y papelería con terminaciones impecables. Atención cercana y entregas puntuales." />
+  <meta name="theme-color" content="#0ea5e9">
+  <meta property="og:title" content="MarVan Impresiones — Soluciones de impresión y papelería personalizada" />
+  <meta property="og:description" content="Stickers, agendas, tarjetas, anillados y papelería con terminaciones impecables. Calidad, rapidez y trato cercano." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="data:image/svg+xml;utf8,<?xml version='1.0' encoding='UTF-8'?><svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630'><rect width='100%25' height='100%25' fill='%23162431'/><text x='50%25' y='50%25' fill='%23ffffff' font-family='Arial' font-size='48' dominant-baseline='middle' text-anchor='middle'>MarVan Impresiones</text></svg>">
+  <style>
+    /* --------- RESET & BASE --------- */
+    *,*::before,*::after{box-sizing:border-box}
+    html:focus-within{scroll-behavior:smooth}
+    body{margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"; line-height:1.5; -webkit-font-smoothing:antialiased; color:var(--text); background:var(--bg)}
+    img,svg,video,canvas{max-width:100%; display:block}
+    a{color:inherit; text-decoration:none}
+    :root{
+      --bg:#0b1220;            /* will be overridden by theme */
+      --text:#0f172a;
+      --muted:#475569;
+      --card:#ffffff;
+      --card-2:#f1f5f9;
+      --line:#e2e8f0;
+      --accent:#0ea5e9;
+      --accent-2:#38bdf8;
+      --ring: 0 0 0 3px rgba(14,165,233,.25);
+      --radius:18px;
+      --shadow: 0 10px 30px rgba(2,6,23,.12), 0 2px 8px rgba(2,6,23,.08);
+      --shadow-soft: 0 6px 18px rgba(2,6,23,.08);
+      --grad: radial-gradient(1000px 600px at 10% -10%, rgba(14,165,233,.20), transparent 60%), radial-gradient(800px 600px at 120% -40%, rgba(56,189,248,.18), transparent 50%);
+    }
+    html[data-theme="dark"]{
+      --bg:#0b1220;
+      --text:#e5eefb;
+      --muted:#9fb0c7;
+      --card:#10172a;
+      --card-2:#0f172a;
+      --line:#1f2a44;
+      --accent:#38bdf8;
+      --accent-2:#7dd3fc;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
+      --shadow-soft: 0 6px 18px rgba(0,0,0,.25);
+      --grad: radial-gradient(1000px 600px at 10% -10%, rgba(56,189,248,.20), transparent 60%), radial-gradient(800px 600px at 120% -40%, rgba(125,211,252,.16), transparent 50%);
+    }
+    html[data-theme="light"]{
+      --bg:#f8fafc;
+      --text:#0f172a;
+      --muted:#475569;
+      --card:#ffffff;
+      --card-2:#f1f5f9;
+      --line:#e2e8f0;
+      --accent:#0ea5e9;
+      --accent-2:#38bdf8;
+      --grad: radial-gradient(1000px 600px at 10% -10%, rgba(14,165,233,.12), transparent 60%), radial-gradient(800px 600px at 120% -40%, rgba(56,189,248,.12), transparent 50%);
+    }
+    .container{max-width:1120px; margin-inline:auto; padding-inline:clamp(16px,4vw,32px)}
+    .section{padding: clamp(56px,10vw,96px) 0}
+    .headline{font-size:clamp(32px,4.6vw,56px); line-height:1.05; letter-spacing:-.02em; margin:0 0 12px}
+    .sub{font-size:clamp(16px,2.2vw,20px); color:var(--muted); margin:0}
+    .btn{display:inline-flex; align-items:center; gap:.6rem; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; padding:.9rem 1.2rem; border-radius:999px; font-weight:600; border:none; cursor:pointer; box-shadow:var(--shadow); transition:transform .15s ease, box-shadow .2s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn-outline{background:transparent; color:var(--text); border:1px solid var(--line); box-shadow:var(--shadow-soft)}
+    .tag{display:inline-block; font-size:.775rem; background:linear-gradient(90deg, rgba(14,165,233,.15), rgba(56,189,248,.15)); color:var(--accent); padding:.35rem .7rem; border-radius:999px; border:1px solid rgba(14,165,233,.25)}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-soft)}
+    .grid{display:grid; gap:clamp(16px,2.4vw,28px)}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media (max-width:960px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:720px){.grid-3,.grid-2,.grid-4{grid-template-columns:1fr}}
+
+    /* --------- HEADER --------- */
+    header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(180%) blur(10px); background:color-mix(in lab, var(--bg) 75%, transparent); border-bottom:1px solid var(--line)}
+    .nav{display:flex; align-items:center; justify-content:space-between; padding:.8rem 0}
+    .brand{display:flex; align-items:center; gap:.6rem; font-weight:800; letter-spacing:.2px}
+    .brand .logo{width:36px; height:36px}
+    nav ul{display:flex; gap:1rem; list-style:none; margin:0; padding:0}
+    nav a{padding:.6rem .8rem; border-radius:10px; color:var(--muted); font-weight:600}
+    nav a:hover{background:var(--card-2); color:var(--text)}
+    .nav-actions{display:flex; align-items:center; gap:.6rem}
+    .theme-toggle{background:var(--card-2); border:1px solid var(--line); width:44px; height:38px; border-radius:12px; display:grid; place-items:center; cursor:pointer}
+    .mobile-toggle{display:none; background:transparent; border:1px solid var(--line); width:46px; height:38px; border-radius:12px; place-items:center}
+    @media (max-width:960px){
+      nav ul{display:none}
+      .mobile-toggle{display:grid}
+      nav[data-open="true"] ul{display:flex; flex-direction:column; padding:12px; background:var(--card); position:absolute; top:64px; right:16px; border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow)}
+      nav[data-open="true"] a{color:var(--text)}
+    }
+
+    /* --------- HERO --------- */
+    .hero{position:relative; background:var(--grad)}
+    .hero .wrap{display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(20px,4vw,36px); align-items:center}
+    .hero-visual{background: conic-gradient(from 180deg at 50% 50%, rgba(14,165,233,.18), rgba(56,189,248,.12), transparent 70%); border:1px dashed color-mix(in oklab, var(--accent) 30%, var(--line)); border-radius: clamp(18px,2.6vw,24px); padding: clamp(14px,2vw,22px)}
+    .hero-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:8px}
+    .hero-tile{aspect-ratio:1; border-radius:14px; background:linear-gradient(135deg, var(--card), var(--card-2)); border:1px solid var(--line); box-shadow:var(--shadow-soft); display:grid; place-items:center; font-size:12px; color:var(--muted)}
+    .hero-tile svg{width:28px; height:28px}
+    @media (max-width:960px){.hero .wrap{grid-template-columns:1fr} .hero-visual{order:-1}}
+
+    /* --------- SERVICES --------- */
+    .service{padding:22px; display:flex; gap:14px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(180deg,var(--card), color-mix(in oklab, var(--card) 82%, var(--bg))); transition: transform .15s ease, box-shadow .2s ease}
+    .service:hover{transform:translateY(-2px); box-shadow:var(--shadow)}
+    .service .ico{min-width:48px; height:48px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; box-shadow:var(--shadow-soft)}
+    .service h3{margin:2px 0 6px; font-size:1.05rem}
+    .service p{margin:0; color:var(--muted); font-size:.95rem}
+    .service small{display:block; margin-top:8px; color:var(--muted)}
+
+    /* --------- FEATURE STRIP --------- */
+    .strip{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+    .strip .item{padding:16px 18px; background:var(--card); border:1px solid var(--line); border-radius:12px; display:flex; align-items:center; gap:10px}
+    .strip .item svg{width:20px; height:20px; color:var(--accent)}
+    @media (max-width:960px){.strip{grid-template-columns:1fr 1fr}}
+    @media (max-width:720px){.strip{grid-template-columns:1fr}}
+
+    /* --------- GALLERY --------- */
+    .gallery{display:grid; grid-template-columns:repeat(6,1fr); gap:12px}
+    .gallery figure{position:relative; overflow:hidden; border-radius:14px; border:1px solid var(--line); background:linear-gradient(135deg, var(--card), var(--card-2)); aspect-ratio:1/1}
+    .gallery figcaption{position:absolute; inset:auto 8px 8px 8px; background:color-mix(in lab, var(--bg) 50%, transparent); color:#fff; font-size:.85rem; padding:.35rem .55rem; border-radius:10px; border:1px solid rgba(255,255,255,.25); opacity:.0; transform:translateY(6px); transition:all .2s ease}
+    .gallery figure:hover figcaption{opacity:1; transform:translateY(0)}
+    .gallery svg{position:absolute; inset:0; width:100%; height:100%;}
+    @media (max-width:1200px){.gallery{grid-template-columns:repeat(4,1fr)}}
+    @media (max-width:800px){.gallery{grid-template-columns:repeat(2,1fr)}}
+
+    /* --------- WHY US --------- */
+    .why{display:grid; grid-template-columns:1.1fr .9fr; gap:24px}
+    .why .points{display:grid; gap:12px}
+    .why .point{display:flex; gap:12px; align-items:flex-start; background:var(--card); border:1px solid var(--line); padding:16px; border-radius:14px}
+    .why .point svg{min-width:22px; color:var(--accent)}
+    @media (max-width:960px){.why{grid-template-columns:1fr}}
+
+    /* --------- PRICING --------- */
+    .pricing{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+    .price{padding:20px; border-radius:16px; border:1px solid var(--line); background:linear-gradient(180deg,var(--card), color-mix(in oklab, var(--card) 86%, var(--bg))); box-shadow:var(--shadow-soft)}
+    .price h3{margin:0 0 6px}
+    .price ul{margin:8px 0 0; padding-left:18px; color:var(--muted)}
+    .price .cta{margin-top:14px}
+    @media (max-width:960px){.pricing{grid-template-columns:1fr}}
+
+    /* --------- FAQ --------- */
+    details{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px}
+    details+details{margin-top:12px}
+    summary{cursor:pointer; font-weight:700; display:flex; align-items:center; gap:10px}
+    summary svg{width:18px; height:18px; color:var(--accent)}
+
+    /* --------- CONTACT --------- */
+    .contact{display:grid; grid-template-columns:1fr .9fr; gap:24px}
+    .contact form{display:grid; gap:12px}
+    .field{display:grid; gap:6px}
+    .field input,.field textarea{padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--card-2); color:var(--text)}
+    .field input:focus,.field textarea:focus{outline:none; box-shadow: var(--ring); border-color: var(--accent)}
+    .contact .card{padding:18px}
+    @media (max-width:960px){.contact{grid-template-columns:1fr}}
+
+    /* --------- FOOTER --------- */
+    footer{border-top:1px solid var(--line); padding:24px 0; color:var(--muted)}
+    .footer-grid{display:grid; grid-template-columns:1fr auto; align-items:center}
+    .social{display:flex; gap:10px}
+    .social a{display:grid; place-items:center; width:38px; height:38px; border:1px solid var(--line); border-radius:10px; background:var(--card)}
+    .social a:hover{border-color:var(--accent)}
+
+    /* --------- UTIL --------- */
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:.5rem .8rem; border:1px solid var(--line); background:var(--card); border-radius:999px}
+    .muted{color:var(--muted)}
+    .center{text-align:center}
+    .mt-8{margin-top:8px} .mt-12{margin-top:12px} .mt-16{margin-top:16px} .mt-24{margin-top:24px} .mt-32{margin-top:32px}
+    .divider{height:1px; background:var(--line); margin:28px 0}
+  </style>
+</head>
+<body>
+  <a href="#servicios" class="pill" style="position:absolute;left:-999px;top:auto; width:1px;height:1px;overflow:hidden;">Saltar al contenido</a>
+
+  <!-- SVG Icons: one place, used everywhere -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="ico-sun" viewBox="0 0 24 24" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.42 1.41 1.79 1.8 1.43-1.42zM1 13h3v-2H1v2zm10 10h2v-3h-2v3zM4.34 19.66l1.41 1.41 1.8-1.79-1.41-1.41-1.8 1.79zM20 11v2h3v-2h-3zm-2.34-7.95l-1.41 1.41 1.79 1.8 1.41-1.41-1.79-1.8zM11 1v3h2V1h-2zm7.66 18.66l-1.79-1.8-1.41 1.41 1.79 1.8 1.41-1.41zM12 6a6 6 0 100 12 6 6 0 000-12z"/></symbol>
+    <symbol id="ico-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21.64 13a9 9 0 11-10.63-10.6 1 1 0 01.9 1.45A7 7 0 0019.2 14.8a1 1 0 011.45.9 9 9 0 01.99-2.7z"/></symbol>
+    <symbol id="ico-menu" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></symbol>
+    <symbol id="ico-check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19l12-12-1.5-1.5z"/></symbol>
+    <symbol id="ico-clock" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 10H7v-2h4V6h2v6z"/></symbol>
+    <symbol id="ico-shield" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l7 4v6c0 5-3.1 9.7-7 10-3.9-.3-7-5-7-10V6l7-4z"/></symbol>
+    <symbol id="ico-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M11 21l-1-7H6l7-13-1 7h4z"/></symbol>
+    <symbol id="ico-print" viewBox="0 0 24 24" fill="currentColor"><path d="M6 9V2h12v7H6zm12 3h2v7h-3v3H7v-3H4v-7h14zm-3 10v-4H9v4h6z"/></symbol>
+    <symbol id="ico-sticker" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h10a6 6 0 016 6v10H10a6 6 0 01-6-6V4zm10 0v6a4 4 0 004 4h6"/></symbol>
+    <symbol id="ico-cards" viewBox="0 0 24 24" fill="currentColor"><path d="M2 7h14v10H2zM6 5h16v12H6z"/></symbol>
+    <symbol id="ico-book" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h10a4 4 0 014 4v14H8a4 4 0 00-4-4V3z"/></symbol>
+    <symbol id="ico-badge" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 6 .9-4.5 4.4 1 6.2L12 16l-5.5 3.5 1-6.2L3 8.9 9 8l3-6z"/></symbol>
+    <symbol id="ico-clipboard" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6v2h3a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h3V2z"/></symbol>
+    <symbol id="ico-map" viewBox="0 0 24 24" fill="currentColor"><path d="M9 4l6 2 6-2v16l-6 2-6-2-6 2V6l6-2z"/></symbol>
+    <symbol id="ico-phone" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.4 15.4 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.6 1 1 0 011 1V21a1 1 0 01-1 1A18 18 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.4 11.4 0 00.6 3.6 1 1 0 01-.25 1l-2.25 2.2z"/></symbol>
+    <symbol id="ico-send" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></symbol>
+    <symbol id="ico-wa" viewBox="0 0 24 24" fill="currentColor"><path d="M.5 23l1.8-6A10 10 0 1112 22a10.8 10.8 0 01-4.9-1.2L.5 23zM7 6.8c-.3 0-.7.1-.8.3C5.4 8.1 5 9.5 7.3 12s4.7 3 5.5 3c.9 0 1.8-.5 2.1-1l.2-.3c.2-.3.1-.7-.2-.9l-1.4-.9c-.3-.2-.7-.1-.9.1l-.5.6c-.1.1-.3.2-.5.1-1-.3-2.1-1-2.7-1.9-.1-.2-.1-.4.1-.5l.6-.5c.3-.2.4-.6.2-.9l-.9-1.4c-.2-.3-.5-.4-.9-.3z"/></symbol>
+    <symbol id="ico-fb" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.6 9.9v-7h-2.8V12h2.8V9.4c0-2.8 1.6-4.4 4.2-4.4 1.2 0 2.5.2 2.5.2v2.7h-1.4c-1.4 0-1.8.9-1.8 1.8V12h3l-.5 2.9h-2.5v7A10 10 0 0022 12"/></symbol>
+    <symbol id="ico-tt" viewBox="0 0 24 24" fill="currentColor"><path d="M21 7.6c-1.3-.1-2.6-.6-3.7-1.4v8.1a6.9 6.9 0 11-6-6.8v3.1a3.4 3.4 0 00-1.6-.4 3.5 3.5 0 103.5 3.5V2.5c1.2 1.3 2.8 2.2 4.6 2.5v2.6z"/></symbol>
+    <symbol id="ico-mail" viewBox="0 0 24 24" fill="currentColor"><path d="M2 4h20v16H2V4zm10 9L2 6v12h20V6l-10 7z"/></symbol>
+  </svg>
+
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#inicio" aria-label="Inicio MarVan Impresiones">
+        <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo MarVan"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="12" fill="url(#g)"/><path d="M12 32l6-16 6 12 6-10 6 14" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>MarVan Impresiones</span>
+      </a>
+      <nav id="menu" aria-label="Navegación principal">
+        <ul>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#trabajos">Trabajos</a></li>
+          <li><a href="#por-que">Por qué elegirnos</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </nav>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+          <svg width="22" height="22" aria-hidden="true"><use href="#ico-sun"/></svg>
+        </button>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Abrir menú">
+          <svg width="22" height="22" aria-hidden="true"><use href="#ico-menu"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <!-- HERO -->
+    <section class="hero section">
+      <div class="container wrap">
+        <div>
+          <span class="tag">Calidad + Rapidez + Buen trato</span>
+          <h1 class="headline">Impresión y papelería personalizada con terminaciones impecables</h1>
+          <p class="sub">Somos <strong>MarVan Impresiones</strong>. Hacemos stickers resistentes al agua, agendas 2026, tarjetas personales, anillados y papelería para eventos. Todo con diseño claro, materiales de calidad y entrega puntual.</p>
+          <div class="mt-16" style="display:flex; gap:.6rem; flex-wrap:wrap">
+            <a class="btn" href="#contacto"><svg width="18" height="18"><use href="#ico-send"/></svg> Pedir cotización</a>
+            <a class="btn btn-outline" href="#trabajos">Ver trabajos</a>
+            <span class="pill"><svg width="16" height="16"><use href="#ico-clock"/></svg> Entregas coordinadas</span>
+          </div>
+          <div class="mt-16 strip">
+            <div class="item"><svg><use href="#ico-shield"/></svg> Terminaciones prolijas</div>
+            <div class="item"><svg><use href="#ico-bolt"/></svg> Respuesta ágil</div>
+            <div class="item"><svg><use href="#ico-clipboard"/></svg> Asesoramiento real</div>
+            <div class="item"><svg><use href="#ico-map"/></svg> Mendoza — Envíos a coordinar</div>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-grid">
+            <div class="hero-tile"><svg><use href="#ico-print"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-sticker"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-cards"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-book"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-badge"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-clipboard"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-print"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-sticker"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-cards"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-book"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-badge"/></svg></div>
+            <div class="hero-tile"><svg><use href="#ico-clipboard"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICIOS -->
+    <section id="servicios" class="section">
+      <div class="container">
+        <div class="center">
+          <span class="tag">Qué hacemos</span>
+          <h2 class="headline" style="font-size:clamp(28px,4vw,40px)">Servicios principales</h2>
+          <p class="sub">Soluciones claras, materiales de calidad y acabados prolijos.</p>
+        </div>
+        <div class="mt-24 grid grid-3">
+          <article class="service">
+            <div class="ico"><svg><use href="#ico-sticker"/></svg></div>
+            <div>
+              <h3>Stickers resistentes al agua</h3>
+              <p>Impresión nítida, colores firmes y adhesivo de gran agarre. Ideal para packaging y branding.</p>
+              <small>Formatos: troquel recto o formas simples.</small>
+            </div>
+          </article>
+          <article class="service">
+            <div class="ico"><svg><use href="#ico-book"/></svg></div>
+            <div>
+              <h3>Agendas personalizadas 2026</h3>
+              <p>Diseño elegante con tu nombre y marca. Papel de calidad, tapas firmes y anillado prolijo.</p>
+              <small>Formato A5 vertical. Semanal en doble página.</small>
+            </div>
+          </article>
+          <article class="service">
+            <div class="ico"><svg><use href="#ico-cards"/></svg></div>
+            <div>
+              <h3>Tarjetas personales</h3>
+              <p>Tarjetas con lectura clara y contraste alto. Maquetación cuidada para que tu marca se luzca.</p>
+              <small>Opcionales: esquinas redondeadas.</small>
+            </div>
+          </article>
+          <article class="service">
+            <div class="ico"><svg><use href="#ico-clipboard"/></svg></div>
+            <div>
+              <h3>Papelería para eventos</h3>
+              <p>Toppers, candy bar, invitaciones y señalética. Todo coordinado con tu estética.</p>
+              <small>Pack según cantidad y elementos.</small>
+            </div>
+          </article>
+          <article class="service">
+            <div class="ico"><svg><use href="#ico-print"/></svg></div>
+            <div>
+              <h3>Copias, escaneos y anillados</h3>
+              <p>Impresión nítida y encuadernado prolijo. Doble faz, apuntes, trabajos y presentaciones.</p>
+              <small>Anillado y tapas protectoras.</small>
+            </div>
+          </article>
+          <article class="service">
+            <div class="ico"><svg><use href="#ico-badge"/></svg></div>
+            <div>
+              <h3>Imanes & pequeños impresos</h3>
+              <p>Imanes, etiquetas y piezas pequeñas para reforzar tu marca con buena presencia.</p>
+              <small>Tamaños estándar o a medida.</small>
+            </div>
+          </article>
+        </div>
+
+        <div class="mt-24 center">
+          <p class="muted">Transparencia total: por ahora <strong>no</strong> hacemos UV DTF ni banners. Nos enfocamos en lo que dominamos para que tu resultado sea impecable.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRABAJOS / GALERÍA -->
+    <section id="trabajos" class="section">
+      <div class="container">
+        <div class="center">
+          <span class="tag">Muestras</span>
+          <h2 class="headline" style="font-size:clamp(28px,4vw,40px)">Trabajos recientes</h2>
+          <p class="sub">Una vista rápida de estilos y terminaciones. (Podés reemplazar las tarjetas por tus fotos)</p>
+        </div>
+        <div class="mt-24 gallery" aria-label="Galería de trabajos">
+          <!-- 8 tarjetas SVG de placeholder para que puedas reemplazar por tus imágenes -->
+          <!-- Cada figura usa un SVG sutil y un caption con el tipo de pieza -->
+          __GALLERY__
+        </div>
+      </div>
+    </section>
+
+    <!-- POR QUÉ ELEGIRNOS -->
+    <section id="por-que" class="section">
+      <div class="container why">
+        <div>
+          <span class="tag">Valor real</span>
+          <h2 class="headline" style="font-size:clamp(28px,4vw,40px)">Por qué elegirnos</h2>
+          <p class="sub">Atención honesta, diseño claro y entregas a tiempo. Nos enfocamos en calidad y en que te sea fácil pedir.</p>
+          <div class="mt-16 points">
+            <div class="point"><svg><use href="#ico-check"/></svg> Terminaciones prolijas y buen contraste de lectura.</div>
+            <div class="point"><svg><use href="#ico-bolt"/></svg> Respuesta rápida por WhatsApp y opciones claras.</div>
+            <div class="point"><svg><use href="#ico-shield"/></svg> Materiales de buena calidad para que duren.</div>
+            <div class="point"><svg><use href="#ico-clock"/></svg> Coordinamos entregas y respetamos plazos.</div>
+          </div>
+        </div>
+        <div class="card" style="padding:20px">
+          <h3 style="margin-top:0">Cómo trabajamos</h3>
+          <ol class="mt-12" style="margin:0; padding-left:18px; color:var(--muted)">
+            <li>Nos escribís por WhatsApp con lo que necesitás.</li>
+            <li>Definimos tamaños, cantidades y pequeños detalles.</li>
+            <li>Te pasamos opciones y costos claros.</li>
+            <li>Producción y entrega coordinada.</li>
+          </ol>
+          <div class="mt-16"><a class="btn" href="#contacto"><svg width="18" height="18"><use href="#ico-wa"/></svg> Hablar por WhatsApp</a></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING (opcional orientativo sin precios fijos) -->
+    <section class="section">
+      <div class="container">
+        <div class="center">
+          <span class="tag">Paquetes orientativos</span>
+          <h2 class="headline" style="font-size:clamp(28px,4vw,40px)">Elegí cómo avanzar</h2>
+          <p class="sub">Paquetes pensados para simplificar el pedido. Pedinos cotización exacta según cantidades.</p>
+        </div>
+        <div class="mt-24 pricing">
+          <div class="price">
+            <h3>Inicio Marca</h3>
+            <p class="muted">Para empezar con presencia prolija.</p>
+            <ul>
+              <li>Tarjetas personales (diseño claro)</li>
+              <li>Stickers rectangulares (pack chico)</li>
+              <li>Asesoramiento de lectura y contraste</li>
+            </ul>
+            <div class="cta"><a href="#contacto" class="btn btn-outline">Quiero este</a></div>
+          </div>
+          <div class="price" style="border-color:color-mix(in oklab, var(--accent) 45%, var(--line)); box-shadow: var(--shadow)">
+            <h3>Eventos & Papelería</h3>
+            <p class="muted">Ideal para fiestas, tiendas y promos.</p>
+            <ul>
+              <li>Toppers y candy bar combinados</li>
+              <li>Stickers troquel simple (pack medio)</li>
+              <li>Señalética y etiquetas</li>
+            </ul>
+            <div class="cta"><a href="#contacto" class="btn">Pedir cotización</a></div>
+          </div>
+          <div class="price">
+            <h3>Agenda 2026</h3>
+            <p class="muted">Tu agenda A5 con tu nombre o marca.</p>
+            <ul>
+              <li>Diseño semanal en doble página</li>
+              <li>Tapa personalizada y anillado</li>
+              <li>Opcional: imanes y stickers</li>
+            </ul>
+            <div class="cta"><a href="#contacto" class="btn btn-outline">Consultarme</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section">
+      <div class="container">
+        <div class="center">
+          <span class="tag">Dudas frecuentes</span>
+          <h2 class="headline" style="font-size:clamp(28px,4vw,40px)">Preguntas frecuentes</h2>
+        </div>
+        <div class="mt-24 grid">
+          <details open>
+            <summary><svg><use href="#ico-check"/></svg> ¿Trabajan con UV DTF o banners?</summary>
+            <div class="mt-8 muted">No por ahora. Nos enfocamos en <strong>copias, anillados, stickers, tarjetas, agendas, imanes y papelería</strong>.</div>
+          </details>
+          <details>
+            <summary><svg><use href="#ico-clock"/></svg> ¿Cuánto demoran?</summary>
+            <div class="mt-8 muted">Depende de cantidad y tipo de pieza. Te confirmamos plazo al momento de cotizar. Siempre coordinamos antes de producir.</div>
+          </details>
+          <details>
+            <summary><svg><use href="#ico-clipboard"/></svg> ¿Cómo pido una cotización?</summary>
+            <div class="mt-8 muted">Escribinos por WhatsApp con: tipo de pieza, medidas, cantidades y si necesitás diseño. Te respondemos con opciones claras.</div>
+          </details>
+          <details>
+            <summary><svg><use href="#ico-badge"/></svg> ¿Hacen diseño?</summary>
+            <div class="mt-8 muted">Sí, con <strong>enfoque en claridad y lectura</strong>. Si ya traés tu diseño, lo revisamos para asegurar buen resultado impreso.</div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section id="contacto" class="section">
+      <div class="container contact">
+        <div class="card">
+          <h2 class="headline" style="font-size:clamp(28px,4vw,40px); margin-top:0">Hablemos</h2>
+          <p class="sub">Contanos qué necesitás y te respondemos a la brevedad.</p>
+          <form onsubmit="event.preventDefault(); window.location.href='#enviado';">
+            <div class="field">
+              <label for="nombre">Nombre</label>
+              <input id="nombre" name="nombre" placeholder="Tu nombre" required>
+            </div>
+            <div class="field">
+              <label for="whatsapp">WhatsApp</label>
+              <input id="whatsapp" name="whatsapp" placeholder="+54 9 ..." required>
+            </div>
+            <div class="field">
+              <label for="detalle">¿Qué necesitás?</label>
+              <textarea id="detalle" name="detalle" rows="4" placeholder="Ej: stickers rectangulares 5x5cm, 200 unidades..."></textarea>
+            </div>
+            <div style="display:flex; gap:.6rem; flex-wrap:wrap" class="mt-8">
+              <button class="btn" type="submit"><svg width="18" height="18"><use href="#ico-send"/></svg> Enviar</button>
+              <a class="btn btn-outline" href="#" id="waBtn"><svg width="18" height="18"><use href="#ico-wa"/></svg> Escribir por WhatsApp</a>
+            </div>
+            <p id="enviado" class="muted mt-12" aria-live="polite" style="display:none">¡Gracias! Mensaje preparado. Te respondemos a la brevedad.</p>
+          </form>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Datos de contacto</h3>
+          <div class="mt-8" style="display:grid; gap:10px">
+            <div class="pill"><svg width="16" height="16"><use href="#ico-wa"/></svg> WhatsApp: <strong id="waNumber" style="margin-left:6px">+54 9 261 000 0000</strong></div>
+            <div class="pill"><svg width="16" height="16"><use href="#ico-mail"/></svg> Email: <strong>hola@marvanimpresiones.com</strong></div>
+            <div class="pill"><svg width="16" height="16"><use href="#ico-map"/></svg> Mendoza, Argentina</div>
+          </div>
+          <div class="divider"></div>
+          <h4>Seguinos</h4>
+          <div class="social mt-12">
+            <a href="#" aria-label="Facebook"><svg width="18" height="18"><use href="#ico-fb"/></svg></a>
+            <a href="#" aria-label="TikTok"><svg width="18" height="18"><use href="#ico-tt"/></svg></a>
+          </div>
+          <p class="muted mt-12">Reemplazá los enlaces y el número de WhatsApp por los reales.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>© <span id="y"></span> MarVan Impresiones. Todos los derechos reservados.</div>
+      <div class="social">
+        <a href="#inicio" title="Volver arriba" aria-label="Volver arriba"><svg width="18" height="18"><use href="#ico-bolt"/></svg></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Año dinámico
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Tema: respeta preferencia guardada o media query
+    const root = document.documentElement;
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    const themeBtn = document.getElementById('themeToggle');
+    const iconSwap = () => themeBtn.innerHTML = '<svg width="22" height="22"><use href="#' + (root.getAttribute('data-theme')==='dark' ? 'ico-moon' : 'ico-sun') + '"/></svg>';
+    iconSwap();
+    themeBtn.addEventListener('click', ()=>{
+      const cur = root.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      iconSwap();
+    });
+
+    // Menú móvil
+    const mobileBtn = document.getElementById('mobileToggle');
+    const menu = document.getElementById('menu');
+    mobileBtn.addEventListener('click', ()=>{
+      const open = menu.getAttribute('data-open') === 'true';
+      menu.setAttribute('data-open', !open);
+    });
+
+    // Botón WhatsApp: construye enlace con mensaje
+    const waBtn = document.getElementById('waBtn');
+    waBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const number = document.getElementById('waNumber').textContent.replace(/\\s+/g,'');
+      const nombre = document.getElementById('nombre').value || '';
+      const detalle = document.getElementById('detalle').value || '';
+      const msg = encodeURIComponent('Hola, soy ' + nombre + '. Quiero cotizar: ' + detalle);
+      const url = 'https://wa.me/' + number.replace(/[^\\d]/g,'') + '?text=' + msg;
+      window.open(url, '_blank');
+    });
+
+    // Mostrar aviso de enviado al enviar el formulario (simulado)
+    const form = document.querySelector('form');
+    form.addEventListener('submit', () => {
+      document.getElementById('enviado').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
+"""
+
+# Build gallery placeholders
+import textwrap
+def gallery_item(label):
+    svg = f"""
+    <figure>
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <pattern id='p' width='8' height='8' patternUnits='userSpaceOnUse'>
+            <path d='M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4' stroke='rgba(56,189,248,.35)' stroke-width='1'/>
+          </pattern>
+        </defs>
+        <rect width='100' height='100' rx='12' ry='12' fill='url(#p)'/>
+        <rect x='14' y='14' width='72' height='72' rx='12' ry='12' fill='rgba(14,165,233,.18)'/>
+      </svg>
+      <figcaption>{label}</figcaption>
+    </figure>
+    """
+    return textwrap.dedent(svg)
+
+labels = [
+    "Stickers | Troquel simple",
+    "Agendas 2026 | Tapa personalizada",
+    "Tarjetas | Contraste alto",
+    "Papelería | Toppers & Candy",
+    "Imanes | Mini branding",
+    "Anillados | Presentaciones",
+    "Etiquetas | Packaging",
+    "Invitaciones | Eventos"
+]
+gallery_html = "\n".join(gallery_item(l) for l in labels)
+
+final_html = html.replace("__GALLERY__", gallery_html)
+
+# Write to file
+path = "/mnt/data/landing-marvan-impresiones.html"
+with open(path, "w", encoding="utf-8") as f:
+  f.write(final_html)
+
+path
